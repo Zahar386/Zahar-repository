@@ -16,10 +16,8 @@ running = True
 dt = 0
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-target_pos_x, target_pos_y = bullet_pos_x, bullet_pos_y = -100, -100
-object_rect = pygame.Rect((screen.get_width() / 2-100, screen.get_height() / 2-100, 60, 40))
-target2_pos_x, target2_pos_y = object_rect.x,object_rect.y
-moving=False
+bullet_pos = pygame.Vector2(-100,-100)
+target_pos = pygame.Vector2(-100,-100)
 
 while running:
     screen.fill((0,0,0))
@@ -27,23 +25,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                target2_pos_x, target2_pos_y = pygame.mouse.get_pos()
-                if target2_pos_x in range(int(object_rect.x-60),int(object_rect.x+60)) and target2_pos_y in range(int(object_rect.y-40),int(object_rect.y+40)):
-                    moving = True
             if event.button == 2:
-                target_pos_x, target_pos_y = pygame.mouse.get_pos()
-                bullet_pos_x, bullet_pos_y = player_pos
-            if event.button == 1:
-                target2_pos_x, target2_pos_y = pygame.mouse.get_pos()
-        if event.type == pygame.MOUSEMOTION:
-                if moving:
-                    x_new, y_new = event.rel
-                    object_rect.x, object_rect.y = object_rect.x + x_new, object_rect.y + y_new
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                moving = False
+                target_pos = pygame.Vector2(pygame.mouse.get_pos())
+                bullet_pos = pygame.Vector2(player_pos)
     pygame.draw.circle(screen, "red", player_pos, 40)
-    pygame.draw.ellipse(screen, "yellow", object_rect)
 
     key = pygame.key.get_pressed()
     if key[pygame.K_w]:
@@ -54,28 +39,14 @@ while running:
         if player_pos.x >= 300 * dt: player_pos.x -= 300 * dt
     if key[pygame.K_d]:
         if player_pos.x <= screen.get_width() - 300 * dt: player_pos.x += 300 * dt
-    
-
-    if bullet_pos_x < target_pos_x:
-        bullet_pos_x += 6
-    elif bullet_pos_x > target_pos_x:
-        bullet_pos_x -= 6
         
-    if bullet_pos_x in range(int(target_pos_x)-10,int(target_pos_y)+10):
-        bullet_pos_x = target_pos_x
-        
-    if bullet_pos_y < target_pos_y:
-        bullet_pos_y += 6
-    elif bullet_pos_y > target_pos_y:
-        bullet_pos_y -= 6
-        
-    if bullet_pos_y in range(int(target_pos_y)-10,int(target_pos_y)+10):
-        bullet_pos_y = target_pos_y
-        
-    if (target_pos_x, target_pos_y) != (bullet_pos_x, bullet_pos_y):
-        pygame.draw.circle(screen, "green", (bullet_pos_x, bullet_pos_y), 20)
+    if target_pos != bullet_pos:
+        bullet_pos += dt * 600 * (target_pos - bullet_pos).normalize()
+        pygame.draw.circle(screen, "green", bullet_pos, 20)
+        if int(bullet_pos[0]) in range(int(target_pos[0])-10,int(target_pos[0])+10) and int(bullet_pos[1]) in range(int(target_pos[1])-10,int(target_pos[1])+10):
+            bullet_pos = target_pos
     else:
-        target_pos_x, target_pos_y = bullet_pos_x, bullet_pos_y = -100, -100
+        target_pos = bullet_pos = -100, -100
 
     pygame.display.flip()
 
